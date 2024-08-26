@@ -24,21 +24,27 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(startLevel))
+        
         if let fileULR = Bundle.main.url(forResource: "list", withExtension: "txt") {
             if let fileContent = try? String(contentsOf: fileULR){
                 listWords = fileContent.components(separatedBy: "\n")
-                listWords.shuffle()
-                listWords.removeAll(where: { $0.isEmpty })
-                selectedWord = listWords[0]
-                for _ in selectedWord {
-                    selectedWordReferencie += "?"
-                }
-                primaryWord.text = selectedWordReferencie
-                print(selectedWord)
-                print(selectedWordReferencie)
-                
+                startLevel()
             }
         }
+    }
+    
+    @objc func startLevel() {
+        primaryWord.text = ""
+        selectedWordReferencie = ""
+        listWords.shuffle()
+        listWords.removeAll(where: { $0.isEmpty })
+        selectedWord = listWords[0]
+        for _ in selectedWord {
+            selectedWordReferencie += "?"
+        }
+        primaryWord.text = selectedWordReferencie
+        primaryWord.textColor = .white
     }
     
     @IBAction func buttonTap(_ sender: UIButton) {
@@ -62,15 +68,30 @@ class ViewController: UIViewController {
         if matchFound {
             primaryWord.text = selectedWordReferencie
         } else {
-            let animation = CABasicAnimation(keyPath: "position")
-            animation.duration = 0.06
-            animation.repeatCount = 2
-            animation.autoreverses = true
-            animation.fromValue = NSValue(cgPoint: CGPoint(x: primaryWord.center.x - 10, y: primaryWord.center.y))
-            animation.toValue = NSValue(cgPoint: CGPoint(x: primaryWord.center.x + 10, y: primaryWord.center.y))
-            primaryWord.layer.add(animation, forKey: "position")
-            generator.notificationOccurred(.error)
+            errorAnimation()
         }
+        
+        
+        if let index = selectedWordReferencie.firstIndex(of: "?") {
+            print(index)
+        } else {
+            successGame()
+        }
+    }
+    
+    func successGame() {
+        primaryWord.textColor = .green
+    }
+    
+    func errorAnimation(){
+        let animation = CABasicAnimation(keyPath: "position")
+        animation.duration = 0.06
+        animation.repeatCount = 2
+        animation.autoreverses = true
+        animation.fromValue = NSValue(cgPoint: CGPoint(x: primaryWord.center.x - 10, y: primaryWord.center.y))
+        animation.toValue = NSValue(cgPoint: CGPoint(x: primaryWord.center.x + 10, y: primaryWord.center.y))
+        primaryWord.layer.add(animation, forKey: "position")
+        generator.notificationOccurred(.error)
     }
     
     
