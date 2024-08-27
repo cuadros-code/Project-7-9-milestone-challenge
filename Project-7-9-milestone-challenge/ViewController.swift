@@ -20,31 +20,54 @@ class ViewController: UIViewController {
             wordCount.text = "\(selectedWord.count) letters"
         }
     }
+    var selectedLevel = 0
+    var keyboardButtons = [UIButton]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(startLevel))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "arrow.right"),
+            style: .plain,
+            target: self,
+            action: #selector(nextLevel)
+        )
+        
+        navigationItem.rightBarButtonItem?.isEnabled = false
         
         if let fileULR = Bundle.main.url(forResource: "list", withExtension: "txt") {
             if let fileContent = try? String(contentsOf: fileULR){
                 listWords = fileContent.components(separatedBy: "\n")
+                listWords.shuffle()
                 startLevel()
             }
         }
     }
     
+    @objc func nextLevel() {
+        if selectedLevel < listWords.count - 1{
+            selectedLevel += 1
+            startLevel()
+            
+            for button in keyboardButtons {
+                button.isEnabled = true
+            }
+            
+        }
+        
+        navigationItem.rightBarButtonItem?.isEnabled = false
+    }
+    
     @objc func startLevel() {
         primaryWord.text = ""
         selectedWordReferencie = ""
-        listWords.shuffle()
         listWords.removeAll(where: { $0.isEmpty })
-        selectedWord = listWords[0]
+        selectedWord = listWords[selectedLevel]
         for _ in selectedWord {
             selectedWordReferencie += "?"
         }
         primaryWord.text = selectedWordReferencie
-        primaryWord.textColor = .white
+        primaryWord.textColor = .black
     }
     
     @IBAction func buttonTap(_ sender: UIButton) {
@@ -76,7 +99,11 @@ class ViewController: UIViewController {
             print(index)
         } else {
             successGame()
+            navigationItem.rightBarButtonItem?.isEnabled = true
         }
+        
+        keyboardButtons.append(sender)
+        sender.isEnabled = false
     }
     
     func successGame() {
